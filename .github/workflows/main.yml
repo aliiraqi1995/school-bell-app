@@ -12,12 +12,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Unzip project file
+    - name: Unzip and Fix Paths
       run: |
-        unzip jules_session_*.zip
-        # Move files from subfolder if needed
-        if [ -d "jules_session_*" ]; then
-          mv jules_session_*/* . 2>/dev/null || true
+        unzip -o *.zip
+        # Move everything from nested folder to root if it exists
+        DIR_NAME=$(find . -maxdepth 1 -type d -name "jules_session_*" | head -n 1)
+        if [ -n "$DIR_NAME" ]; then
+          cp -r $DIR_NAME/* .
         fi
 
     - name: set up JDK 17
@@ -25,7 +26,6 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew

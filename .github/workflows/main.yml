@@ -12,13 +12,23 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Unzip project file
+    - name: Unzip and auto-locate project
       run: |
-        unzip -o *.zip
-        # نقل الملفات للجذر في حال وجود مجلد فرعي
-        DIR_NAME=$(find . -maxdepth 1 -type d -name "jules_session_*" | head -n 1)
-        if [ -n "$DIR_NAME" ]; then
-          cp -r $DIR_NAME/* .
+        # فك ضغط أول ملف zip يلقاه السيرفر
+        ZIP_FILE=$(find . -maxdepth 1 -name "*.zip" | head -n 1)
+        if [ -n "$ZIP_FILE" ]; then
+          echo "Found zip: $ZIP_FILE"
+          unzip -o "$ZIP_FILE"
+        fi
+
+        # البحث عن ملف gradlew أينما كان ونقل محتوياته للجذر
+        GRADLEW_PATH=$(find . -name "gradlew" | head -n 1)
+        if [ -n "$GRADLEW_PATH" ]; then
+          DIR_PATH=$(dirname "$GRADLEW_PATH")
+          if [ "$DIR_PATH" != "." ]; then
+            echo "Moving files from $DIR_PATH to root..."
+            cp -r $DIR_PATH/* .
+          fi
         fi
 
     - name: Set up JDK 17
